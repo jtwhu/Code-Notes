@@ -272,14 +272,17 @@ class Network:
         log_out('-' * len(s) + '\n', self.Log_file)
         return mean_iou
 
+    # 是否可以考虑样本不均衡因素换成focal loss?
     def get_loss(self, logits, labels, pre_cal_weights):
         # calculate the weighted cross entropy according to the inverse frequency
         # 损失函数就是带权重的交叉熵损失函数了
         # 对照公式即可
         class_weights = tf.convert_to_tensor(pre_cal_weights, dtype=tf.float32)
-        one_hot_labels = tf.one_hot(labels, depth=self.config.num_classes)
+        one_hot_labels = tf.one_hot(labels, depth=self.config.num_classes)# 转换成独热编码形式
         weights = tf.reduce_sum(class_weights * one_hot_labels, axis=1)
+        # 计算交叉熵损失函数
         unweighted_losses = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=one_hot_labels)
+        # 加入权重
         weighted_losses = unweighted_losses * weights
         output_loss = tf.reduce_mean(weighted_losses)
         return output_loss

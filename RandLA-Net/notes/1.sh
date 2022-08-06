@@ -1,4 +1,12 @@
 G:.
+###
+ # @Descripttion: 
+ # @Author: Jiang Tao
+ # @version: 
+ # @Date: 2022-08-06 10:01:21
+ # @LastEditors: Jiang Tao
+ # @LastEditTime: 2022-08-06 11:23:22
+### 
 │  .gitattributes
 │  .gitignore
 │  compile_op.sh                     # 编译脚本
@@ -48,11 +56,11 @@ G:.
     │      anno_paths.txt
     │      class_names.txt
     │
-    └─nearest_neighbors
+    └─nearest_neighbors # 最近邻插值相关算法
             KDTreeTableAdaptor.h
             knn.pyx
             knn_.cxx
             knn_.h
             nanoflann.hpp
             setup.py
-            test.py
+            test.py # 最近邻插值算法测试

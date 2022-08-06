@@ -1,3 +1,11 @@
+'''
+Descripttion: 
+Author: Jiang Tao
+version: 
+Date: 2022-08-04 22:30:28
+LastEditors: Jiang Tao
+LastEditTime: 2022-08-06 10:46:50
+'''
 from sklearn.neighbors import KDTree
 from os.path import join, exists, dirname, abspath
 import numpy as np
@@ -26,6 +34,7 @@ for pc_path in glob.glob(join(dataset_path, '*.txt')):
     if exists(join(sub_pc_folder, file_name + '_KDTree.pkl')):
         continue
 
+    # 读取点云坐标以及颜色信息
     pc = DP.load_pc_semantic3d(pc_path)
     # check if label exists
     label_path = pc_path[:-4] + '.labels'
@@ -33,6 +42,7 @@ for pc_path in glob.glob(join(dataset_path, '*.txt')):
         labels = DP.load_label_semantic3d(label_path)
         full_ply_path = join(original_pc_folder, file_name + '.ply')
 
+        #===============================================第一次格网下采样====================================
         #  Subsample to save space
         sub_points, sub_colors, sub_labels = DP.grid_sub_sampling(pc[:, :3].astype(np.float32),
                                                                   pc[:, 4:7].astype(np.uint8), labels, 0.01)
@@ -40,6 +50,7 @@ for pc_path in glob.glob(join(dataset_path, '*.txt')):
 
         write_ply(full_ply_path, (sub_points, sub_colors, sub_labels), ['x', 'y', 'z', 'red', 'green', 'blue', 'class'])
 
+        #================================================第二次格网下采样====================================
         # save sub_cloud and KDTree file
         sub_xyz, sub_colors, sub_labels = DP.grid_sub_sampling(sub_points, sub_colors, sub_labels, grid_size)
         sub_colors = sub_colors / 255.0
@@ -47,11 +58,13 @@ for pc_path in glob.glob(join(dataset_path, '*.txt')):
         sub_ply_file = join(sub_pc_folder, file_name + '.ply')
         write_ply(sub_ply_file, [sub_xyz, sub_colors, sub_labels], ['x', 'y', 'z', 'red', 'green', 'blue', 'class'])
 
+        # 建立kdtree
         search_tree = KDTree(sub_xyz, leaf_size=50)
         kd_tree_file = join(sub_pc_folder, file_name + '_KDTree.pkl')
         with open(kd_tree_file, 'wb') as f:
             pickle.dump(search_tree, f)
 
+        # 查询第二次下采样之后的所有点距离第一次下采样之后的点中距离最近的点的索引
         proj_idx = np.squeeze(search_tree.query(sub_points, return_distance=False))
         proj_idx = proj_idx.astype(np.int32)
         proj_save = join(sub_pc_folder, file_name + '_proj.pkl')
